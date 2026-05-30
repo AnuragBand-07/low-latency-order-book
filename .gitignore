@@ -1,0 +1,19 @@
+# Compiled binaries
+main
+orderbook
+engine
+*.out
+*.o
+*.dSYM/
+
+# Build directories
+build/
+cmake-build-*/
+CMakeFiles/
+CMakeCache.txt
+
+# IDE
+.idea/
+
+# macOS
+.DS_Store
