@@ -2,9 +2,13 @@
 main
 orderbook
 engine
+benchmark
 *.out
 *.o
 *.dSYM/
+
+# Generated benchmark data (regenerable via ./benchmark)
+*.csv
 
 # Build directories
 build/
