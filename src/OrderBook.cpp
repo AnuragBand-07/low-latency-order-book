@@ -105,3 +105,19 @@ void OrderBook::cancelOrder(int order_id) {
     orderMap.erase(it);
     delete node;
 }
+
+bool OrderBook::bestBid(double& price) const {
+    if (bids.empty()) return false;
+    price = bids.begin()->first;
+    return true;
+}
+
+bool OrderBook::bestAsk(double& price) const {
+    if (asks.empty()) return false;
+    price = asks.begin()->first;
+    return true;
+}
+
+size_t OrderBook::liveOrders() const {
+    return orderMap.size();
+}

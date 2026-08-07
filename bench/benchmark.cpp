@@ -1,10 +1,11 @@
 // benchmark.cpp — Per-operation latency benchmark for the OrderBook matching engine.
 //
-// Build (NEVER benchmark debug builds — always -O2 or higher):
-//     g++ -O2 -std=c++17 -o benchmark benchmark.cpp OrderBook.cpp
-//
-// Run:
-//     ./benchmark
+// Build (NEVER benchmark debug builds — always -O2 or higher).
+// From the repo root, use the Makefile:
+//     make bench          # builds and runs, writes *.csv to repo root
+// or compile manually:
+//     g++ -O2 -std=c++17 -Isrc -o build/benchmark bench/benchmark.cpp src/OrderBook.cpp
+//     ./build/benchmark
 //
 // Output:
 //   * Per-op latency percentiles (mean, p50, p90, p95, p99, p99.9, max)

@@ -3,6 +3,7 @@
 #include <map>
 #include <unordered_map>
 #include <functional>
+#include <cstddef>
 
 enum class OrderSide {
     BID,
@@ -53,4 +54,9 @@ public:
     ~OrderBook();
     void addOrder(int order_id, OrderSide side, double price, int quantity);
     void cancelOrder(int order_id);
+
+    // Read-only accessors (top of book / size) for demos and tests.
+    bool   bestBid(double& price) const;   // false if the bid book is empty
+    bool   bestAsk(double& price) const;   // false if the ask book is empty
+    size_t liveOrders() const;             // number of resting (unfilled) orders
 };

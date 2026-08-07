@@ -1,17 +1,20 @@
 """
 plot_latency.py — Renders latency-histogram + CDF plots from benchmark output.
 
-Usage:
-    python plot_latency.py
-    # produces latency_histogram.png  and  latency_cdf.png
+Usage (run from the repo root, after ./build/benchmark has produced the CSVs):
+    python3 scripts/plot_latency.py
+    # produces docs/img/latency_histogram.png  and  docs/img/latency_cdf.png
 
 Requires: numpy, matplotlib, pandas  (pip install numpy matplotlib pandas)
 """
 
+import os
 import sys
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+
+IMG_DIR = os.path.join("docs", "img")
 
 
 def percentile_summary(samples: np.ndarray) -> dict:
@@ -87,8 +90,9 @@ def main() -> int:
     print("addOrder() :", percentile_summary(add))
     print("cancelOrder():", percentile_summary(cancel))
 
-    plot_histogram(add, cancel, "latency_histogram.png")
-    plot_cdf(add, cancel, "latency_cdf.png")
+    os.makedirs(IMG_DIR, exist_ok=True)
+    plot_histogram(add, cancel, os.path.join(IMG_DIR, "latency_histogram.png"))
+    plot_cdf(add, cancel, os.path.join(IMG_DIR, "latency_cdf.png"))
     return 0
 
 
