@@ -17,6 +17,7 @@ Benchmarked at **4.3M `addOrder`/sec with sub-microsecond p99 latency** on a sin
 ├── scripts/
 │   └── plot_latency.py    # renders histogram + CDF from benchmark CSVs
 ├── docs/img/              # generated latency plots (checked in for the README)
+├── demo/                  # browser walkthrough (same matching rules)
 ├── Makefile
 └── README.md
 ```
@@ -69,6 +70,15 @@ Workload: 100K-order warmup, then 1M random `addOrder` + 100K `cancelOrder` call
 
 *`p99.9` is dominated by allocator slow paths; a pooled allocator for `OrderNode` is the
 natural next step to flatten the tail.*
+
+## Demo
+
+The browser demo uses the same price-time priority rules as the C++ engine: a limit that does not cross rests in a FIFO queue, a crossing order prints at the maker’s price, and cancels splice a live order out of its queue.
+
+- Live book: https://anuragband-07.github.io/low-latency-order-book/demo/
+- Walkthrough video: https://anuragband-07.github.io/low-latency-order-book/demo/watch.html
+
+`demo/index.html` also opens locally, with no build step.
 
 ## Build & run
 

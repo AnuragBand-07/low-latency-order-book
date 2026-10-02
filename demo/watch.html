@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Order Book Matching Engine — Demo</title>
+<style>
+  :root {
+    --bg: #0b0e14;
+    --text: #d7dce6;
+    --muted: #8b93a7;
+    --accent: #5b8cff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  main {
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: 36px 20px 64px;
+  }
+  h1 { font-size: 26px; font-weight: 650; margin: 0 0 8px; }
+  .lead { color: var(--muted); margin: 0 0 20px; max-width: 68ch; }
+  video {
+    width: 100%;
+    background: #000;
+    border-radius: 10px;
+    display: block;
+  }
+  .links { margin-top: 16px; display: flex; gap: 18px; flex-wrap: wrap; }
+  .links a { color: var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Low-Latency Order Book Matching Engine</h1>
+  <p class="lead">
+    A short walkthrough of price-time priority matching: a resting bid, a cross that
+    prints at the maker’s price, a short market simulation, and an in-browser timing run.
+    The C++ engine uses the same rules and measures 4.3M <code>addOrder</code>/sec with a 625&nbsp;ns p99.
+  </p>
+  <video controls autoplay muted playsinline preload="metadata" src="order-book-demo.mp4"></video>
+  <div class="links">
+    <a href="index.html">Open the live order book</a>
+    <a href="https://github.com/AnuragBand-07/low-latency-order-book">Source on GitHub</a>
+  </div>
+</main>
+</body>
+</html>

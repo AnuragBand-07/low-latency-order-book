@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Order Book Matching Engine — Live Demo</title>
+<meta name="description" content="Interactive price-time priority limit order book matching engine. Browser demo of a C++ low-latency matching engine." />
+<style>
+  :root {
+    --bg: #0b0e14;
+    --panel: #11151f;
+    --panel2: #161b28;
+    --border: #232a3b;
+    --text: #d7dce6;
+    --muted: #6b7487;
+    --green: #2ecc71;
+    --green-dim: rgba(46, 204, 113, 0.12);
+    --red: #ff5c5c;
+    --red-dim: rgba(255, 92, 92, 0.12);
+    --accent: #5b8cff;
+    --mono: "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    min-height: 100vh;
+  }
+  header {
+    padding: 20px 24px 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 12px;
+  }
+  header h1 { font-size: 18px; font-weight: 650; }
+  header .sub { color: var(--muted); font-size: 13px; }
+  .layout {
+    display: grid;
+    grid-template-columns: 340px 1fr 320px;
+    gap: 16px;
+    padding: 16px 24px 24px;
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+  @media (max-width: 980px) { .layout { grid-template-columns: 1fr; } }
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .panel h2 {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .panel .body { padding: 14px; }
+
+  /* --- order entry --- */
+  .field { margin-bottom: 12px; }
+  .field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+  .field input {
+    width: 100%;
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 14px;
+    padding: 8px 10px;
+    outline: none;
+  }
+  .field input:focus { border-color: var(--accent); }
+  .side-toggle { display: flex; gap: 8px; margin-bottom: 12px; }
+  .side-toggle button {
+    flex: 1;
+    padding: 9px 0;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--panel2);
+    color: var(--muted);
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .side-toggle button.buy.active { background: var(--green-dim); border-color: var(--green); color: var(--green); }
+  .side-toggle button.sell.active { background: var(--red-dim); border-color: var(--red); color: var(--red); }
+  .submit {
+    width: 100%;
+    padding: 10px 0;
+    border: none;
+    border-radius: 6px;
+    font-weight: 650;
+    font-size: 14px;
+    cursor: pointer;
+    color: #08111f;
+    background: var(--green);
+  }
+  .submit.sell { background: var(--red); color: #1f0808; }
+  .btn-row { display: flex; gap: 8px; margin-top: 14px; }
+  .btn {
+    flex: 1;
+    padding: 9px 0;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--panel2);
+    color: var(--text);
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .btn:hover { border-color: var(--accent); }
+  .btn.active { border-color: var(--accent); color: var(--accent); }
+
+  /* --- ladder --- */
+  .ladder { font-family: var(--mono); font-size: 13px; }
+  .ladder .row {
+    display: grid;
+    grid-template-columns: 1fr 90px 60px;
+    padding: 3px 14px;
+    position: relative;
+  }
+  .ladder .row .bar {
+    position: absolute;
+    top: 0; bottom: 0; right: 0;
+    z-index: 0;
+  }
+  .ladder .row span { position: relative; z-index: 1; text-align: right; }
+  .ladder .row span:first-child { text-align: left; }
+  .ladder .ask .price { color: var(--red); }
+  .ladder .ask .bar { background: var(--red-dim); }
+  .ladder .bid .price { color: var(--green); }
+  .ladder .bid .bar { background: var(--green-dim); }
+  .ladder .head {
+    display: grid;
+    grid-template-columns: 1fr 90px 60px;
+    padding: 6px 14px;
+    color: var(--muted);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .ladder .head span { text-align: right; }
+  .ladder .head span:first-child { text-align: left; }
+  .spread-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 14px;
+    margin: 4px 0;
+    background: var(--panel2);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .spread-row b { color: var(--text); }
+
+  /* --- tape --- */
+  .tape { font-family: var(--mono); font-size: 12.5px; max-height: 320px; overflow-y: auto; }
+  .tape .trade {
+    display: grid;
+    grid-template-columns: 70px 1fr 70px;
+    padding: 3px 14px;
+    border-bottom: 1px solid rgba(35, 42, 59, 0.5);
+  }
+  .tape .trade span:nth-child(2) { text-align: right; }
+  .tape .trade span:nth-child(3) { text-align: right; color: var(--muted); }
+  .tape .empty { padding: 14px; color: var(--muted); font-family: inherit; }
+
+  /* --- stats --- */
+  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .stat {
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+  }
+  .stat .k { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat .v { font-family: var(--mono); font-size: 16px; font-weight: 600; margin-top: 2px; }
+  .bench-note { margin-top: 10px; font-size: 12px; color: var(--muted); }
+
+  footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: 12.5px;
+    padding: 8px 24px 28px;
+  }
+  footer code { font-family: var(--mono); color: var(--text); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Order Book Matching Engine</h1>
+  <span class="sub">price-time priority &middot; O(1) cancels &middot; trades print at maker price &middot; live in your browser</span>
+</header>
+
+<div class="layout">
+
+  <!-- left: order entry + controls -->
+  <div>
+    <div class="panel">
+      <h2>New Order</h2>
+      <div class="body">
+        <div class="side-toggle">
+          <button id="btnBuy" class="buy active">BUY</button>
+          <button id="btnSell" class="sell">SELL</button>
+        </div>
+        <div class="field">
+          <label for="price">Limit price</label>
+          <input id="price" type="number" step="0.01" value="100.00" />
+        </div>
+        <div class="field">
+          <label for="qty">Quantity</label>
+          <input id="qty" type="number" step="1" value="25" />
+        </div>
+        <button id="submit" class="submit">Submit Buy Order</button>
+        <div class="btn-row">
+          <button id="btnSim" class="btn">▶ Market Sim</button>
+          <button id="btnReset" class="btn">Reset Book</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top: 16px;">
+      <h2>Engine Stats</h2>
+      <div class="body">
+        <div class="stats">
+          <div class="stat"><div class="k">Open orders</div><div class="v" id="stOpen">0</div></div>
+          <div class="stat"><div class="k">Trades</div><div class="v" id="stTrades">0</div></div>
+          <div class="stat"><div class="k">Throughput</div><div class="v" id="stThr">—</div></div>
+          <div class="stat"><div class="k">Mean latency</div><div class="v" id="stLat">—</div></div>
+        </div>
+        <div class="btn-row">
+          <button id="btnBench" class="btn">Run 200K-op benchmark</button>
+        </div>
+        <div class="bench-note" id="benchNote">
+          Runs 200,000 random add/cancel ops through the engine in-browser and reports throughput and mean latency.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- middle: ladder -->
+  <div class="panel">
+    <h2>Book Depth</h2>
+    <div class="ladder">
+      <div class="head"><span>Price</span><span>Qty</span><span>#</span></div>
+      <div id="asks"></div>
+      <div class="spread-row">
+        <span>spread <b id="spread">—</b></span>
+        <span>mid <b id="mid">—</b></span>
+      </div>
+      <div id="bids"></div>
+    </div>
+  </div>
+
+  <!-- right: tape -->
+  <div class="panel">
+    <h2>Trade Tape <span style="text-transform:none;font-weight:400">(maker price)</span></h2>
+    <div class="tape" id="tape"><div class="empty">No trades yet — submit crossing orders or start the market sim.</div></div>
+  </div>
+
+</div>
+
+<footer>
+  Browser port of a C++ matching engine (<code>std::map</code> price levels + FIFO doubly linked lists + <code>unordered_map</code> id lookup).
+  The C++ version sustains millions of ops/sec single-threaded.
+</footer>
+
+<script src="engine.js"></script>
+<script>
+  const $ = (id) => document.getElementById(id);
+  const fmt = (ticks) => (ticks / 100).toFixed(2);
+
+  let book = new OrderBook();
+  let nextId = 1;
+  let side = 'BID';
+  let simTimer = null;
+
+  // seeded RNG so the sim is reproducible-ish
+  let seed = Date.now() & 0x7fffffff;
+  const rand = () => (seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
+
+  function render() {
+    const depth = book.depth(12);
+    const maxQty = Math.max(1, ...depth.bids.map(l => l.qty), ...depth.asks.map(l => l.qty));
+
+    const row = (l, cls) => `
+      <div class="row ${cls}">
+        <div class="bar" style="width:${Math.min(100, (l.qty / maxQty) * 100)}%"></div>
+        <span class="price">${fmt(l.price)}</span><span>${l.qty}</span><span>${l.orders}</span>
+      </div>`;
+
+    // asks render worst→best so best ask sits just above the spread row
+    $('asks').innerHTML = depth.asks.slice().reverse().map(l => row(l, 'ask')).join('');
+    $('bids').innerHTML = depth.bids.map(l => row(l, 'bid')).join('');
+
+    const bb = book.bestBid(), ba = book.bestAsk();
+    $('spread').textContent = bb !== null && ba !== null ? fmt(ba - bb) : '—';
+    $('mid').textContent = bb !== null && ba !== null ? ((bb + ba) / 200).toFixed(3) : '—';
+
+    $('stOpen').textContent = book.openOrders.toLocaleString();
+    $('stTrades').textContent = book.tradeSeq.toLocaleString();
+
+    const t = book.trades;
+    if (t.length) {
+      $('tape').innerHTML = t.slice(-40).reverse().map(tr => `
+        <div class="trade">
+          <span style="color:${'var(--accent)'}">${fmt(tr.price)}</span>
+          <span>${tr.quantity}</span>
+          <span>#${tr.seq}</span>
+        </div>`).join('');
+    }
+  }
+
+  function setSide(s) {
+    side = s;
+    $('btnBuy').classList.toggle('active', s === 'BID');
+    $('btnSell').classList.toggle('active', s === 'ASK');
+    $('submit').textContent = s === 'BID' ? 'Submit Buy Order' : 'Submit Sell Order';
+    $('submit').classList.toggle('sell', s === 'ASK');
+  }
+  $('btnBuy').onclick = () => setSide('BID');
+  $('btnSell').onclick = () => setSide('ASK');
+
+  $('submit').onclick = () => {
+    const price = Math.round(parseFloat($('price').value) * 100);
+    const qty = parseInt($('qty').value, 10);
+    if (!Number.isFinite(price) || price <= 0 || !Number.isFinite(qty) || qty <= 0) return;
+    book.addOrder(nextId++, side, price, qty);
+    render();
+  };
+
+  function simStep() {
+    // random walk around the current mid
+    const bb = book.bestBid(), ba = book.bestAsk();
+    const mid = bb !== null && ba !== null ? (bb + ba) / 2 : 10000;
+    for (let i = 0; i < 4; i++) {
+      if (rand() < 0.12 && book.openOrders > 20) {
+        const ids = [...book.orderMap.keys()];
+        book.cancelOrder(ids[(rand() * ids.length) | 0]);
+      } else {
+        const s = rand() < 0.5 ? 'BID' : 'ASK';
+        const offset = ((rand() * 30) | 0) - (s === 'BID' ? 20 : -8) * (rand() < 0.15 ? -1 : 1);
+        const p = Math.max(1, Math.round(mid) + (s === 'BID' ? -offset : offset));
+        book.addOrder(nextId++, s, p, 1 + ((rand() * 60) | 0));
+      }
+    }
+    render();
+  }
+
+  $('btnSim').onclick = () => {
+    if (simTimer) {
+      clearInterval(simTimer);
+      simTimer = null;
+      $('btnSim').textContent = '▶ Market Sim';
+      $('btnSim').classList.remove('active');
+    } else {
+      simTimer = setInterval(simStep, 120);
+      $('btnSim').textContent = '⏸ Pause Sim';
+      $('btnSim').classList.add('active');
+    }
+  };
+
+  $('btnReset').onclick = () => {
+    book = new OrderBook();
+    nextId = 1;
+    $('tape').innerHTML = '<div class="empty">No trades yet — submit crossing orders or start the market sim.</div>';
+    $('stThr').textContent = '—';
+    $('stLat').textContent = '—';
+    render();
+  };
+
+  $('btnBench').onclick = () => {
+    $('benchNote').textContent = 'Running…';
+    // yield so the label paints before we block
+    setTimeout(() => {
+      const b = new OrderBook();
+      const N = 200000;
+      let id = 1;
+      const t0 = performance.now();
+      for (let i = 0; i < N; i++) {
+        if (i % 10 === 3 && id > 100) {
+          b.cancelOrder(((rand() * (id - 1)) | 0) + 1);
+        } else {
+          b.addOrder(id++, rand() < 0.5 ? 'BID' : 'ASK', 9900 + ((rand() * 201) | 0), 1 + ((rand() * 100) | 0));
+        }
+      }
+      const total = (performance.now() - t0) / 1000;
+      const meanUs = (total * 1e6) / N;
+      $('stThr').textContent = Math.round(N / total).toLocaleString() + '/s';
+      $('stLat').textContent = meanUs.toFixed(2) + ' µs';
+      $('benchNote').textContent =
+        `200,000 ops in ${total.toFixed(2)}s. Mean is wall-clock time per op (JS in-browser). ` +
+        `The native C++ engine is much faster; this demo uses the same matching rules.`;
+    }, 30);
+  };
+
+  // seed the book with some resting liquidity so it looks alive
+  (function seedBook() {
+    for (let i = 0; i < 60; i++) {
+      const s = i % 2 === 0 ? 'BID' : 'ASK';
+      const p = s === 'BID' ? 10000 - 1 - ((rand() * 40) | 0) : 10000 + 1 + ((rand() * 40) | 0);
+      book.addOrder(nextId++, s, p, 5 + ((rand() * 80) | 0));
+    }
+    render();
+  })();
+</script>
+</body>
+</html>
