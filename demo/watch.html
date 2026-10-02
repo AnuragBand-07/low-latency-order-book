@@ -4,6 +4,25 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Order Book Matching Engine — Demo</title>
+<meta property="og:type" content="video.other" />
+<meta property="og:title" content="Low-Latency Order Book Matching Engine — Demo" />
+<meta property="og:description" content="C++ limit order book with price-time priority. A resting bid, a cross at the maker price, and 4.3M addOrder/sec with a 625 ns p99." />
+<meta property="og:video" content="https://anuragband-07.github.io/low-latency-order-book/demo/order-book-demo.mp4" />
+<meta property="og:video:type" content="video/mp4" />
+<meta property="og:video:width" content="1440" />
+<meta property="og:video:height" content="900" />
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "VideoObject",
+  "name": "Low-Latency Order Book Matching Engine — Demo",
+  "description": "C++ limit order book with price-time priority. A resting bid, a cross at the maker price, and 4.3 million addOrder calls per second with a 625 nanosecond p99.",
+  "contentUrl": "https://anuragband-07.github.io/low-latency-order-book/demo/order-book-demo.mp4",
+  "encodingFormat": "video/mp4",
+  "duration": "PT25S",
+  "transcript": "This is a C++ limit order book. Orders follow price-time priority. A buy that does not cross the ask rests in a FIFO queue. A sell that crosses the best bid trades at the maker's price. The native engine sustains 4.3 million adds per second, with a p99 latency of 625 nanoseconds."
+}
+</script>
 <style>
   :root {
     --bg: #0b0e14;
@@ -24,6 +43,7 @@
     padding: 36px 20px 64px;
   }
   h1 { font-size: 26px; font-weight: 650; margin: 0 0 8px; }
+  h2 { font-size: 16px; font-weight: 650; margin: 22px 0 6px; }
   .lead { color: var(--muted); margin: 0 0 20px; max-width: 68ch; }
   video {
     width: 100%;
@@ -43,7 +63,11 @@
     prints at the maker’s price, a short market simulation, and an in-browser timing run.
     The C++ engine uses the same rules and measures 4.3M <code>addOrder</code>/sec with a 625&nbsp;ns p99.
   </p>
-  <video controls autoplay muted playsinline preload="metadata" src="order-book-demo.mp4"></video>
+  <video controls playsinline preload="metadata" src="order-book-demo.mp4"></video>
+  <h2>Transcript</h2>
+  <p class="lead">
+    This is a C++ limit order book. Orders follow price-time priority. A buy that does not cross the ask rests in a FIFO queue. A sell that crosses the best bid trades at the maker’s price. The native engine sustains 4.3 million adds per second, with a p99 latency of 625 nanoseconds.
+  </p>
   <div class="links">
     <a href="index.html">Open the live order book</a>
     <a href="https://github.com/AnuragBand-07/low-latency-order-book">Source on GitHub</a>

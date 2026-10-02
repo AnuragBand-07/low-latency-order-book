@@ -76,7 +76,7 @@ natural next step to flatten the tail.*
 The browser demo uses the same price-time priority rules as the C++ engine: a limit that does not cross rests in a FIFO queue, a crossing order prints at the maker’s price, and cancels splice a live order out of its queue.
 
 - Live book: https://anuragband-07.github.io/low-latency-order-book/demo/
-- Walkthrough video: https://anuragband-07.github.io/low-latency-order-book/demo/watch.html
+- Demo video (MP4): https://anuragband-07.github.io/low-latency-order-book/demo/order-book-demo.mp4
 
 `demo/index.html` also opens locally, with no build step.
 
